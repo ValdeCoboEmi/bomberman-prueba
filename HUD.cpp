@@ -7,8 +7,12 @@ int HUD::getHeight() const {
     return 95; // ahora ocupa toda la altura de la ventana
 }
 
+int HUD::getWidth() const {
+    return 25; // ancho fijo de 30 caracteres
+}
+
 void HUD::draw(const Player &player, int currentLevel, int mapWidth) {
-    int hudX = mapWidth + 5; // coloca el HUD 5 espacios a la derecha del mapa
+    int hudX = mapWidth + 3; // coloca el HUD 5 espacios a la derecha del mapa
     int y = 2;
 
     Utils::moveCursor(hudX, y++);

@@ -10,12 +10,34 @@
 Game::Game() : currentLevel(1), isRunning(true)
 {
 #ifdef _WIN32
-    // Tamaño fijo para ventana de consola en Windows
     HWND console = GetConsoleWindow();
-    RECT r;
-    GetWindowRect(console, &r);
-    MoveWindow(console, r.left, r.top, 1200, 720, TRUE);
 
+    // Tamaño deseado de ventana (en píxeles)
+    const int consoleWidth = 400;
+    const int consoleHeight = 300;
+
+    // Obtener tamaño de pantalla
+    int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+    int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+    // Calcular posición para centrar
+    int posX = (screenWidth - consoleWidth) / 2;
+    int posY = (screenHeight - consoleHeight) / 2;
+
+    // Mover ventana y establecer tamaño
+    MoveWindow(console, posX, posY, consoleWidth, consoleHeight, TRUE);
+
+    // Ajustar tamaño del búfer de consola para que coincida con el tamaño de la ventana
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(hOut, &csbi);
+
+    // Establecer tamaño de búfer sin scroll (igual a tamaño de ventana en caracteres)
+    COORD bufferSize;
+    bufferSize.X = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    bufferSize.Y = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+    SetConsoleScreenBufferSize(hOut, bufferSize);
 #endif
 
     loadLevel(currentLevel);
@@ -27,8 +49,7 @@ void Game::run()
     {
         Utils::clearScreen();
         hud.draw(player, currentLevel, map.getWidth());
-        map.draw(player.getX(), player.getY(), bombs, hud.getHeight());
-
+        map.draw(player.getX(), player.getY(), bombs, 1, 1);
 
         for (auto &bomb : bombs)
             bomb.update();

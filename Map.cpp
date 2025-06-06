@@ -30,16 +30,14 @@ bool Map::loadFromFile(const std::string &filename)
     return true;
 }
 
-void Map::draw(int playerX, int playerY, const std::vector<Bomb> &bombs, int offsetY)
+void Map::draw(int playerX, int playerY, const std::vector<Bomb> &bombs, int offsetX, int offsetY)
 {
-    const int MAX_WIDTH = 119; // Ancho máximo visible del mapa
-    int widthToDraw = std::min(getWidth(), MAX_WIDTH);
-
     for (int y = 0; y < getHeight(); ++y)
     {
-        Utils::moveCursor(0, offsetY + y);
-        for (int x = 0; x < widthToDraw; ++x)
+        for (int x = 0; x < getWidth(); ++x)
         {
+            Utils::moveCursor(offsetX + x, y + offsetY);
+
             if (x == playerX && y == playerY)
             {
                 std::cout << PINK << "o" << RESET;
@@ -99,6 +97,7 @@ void Map::draw(int playerX, int playerY, const std::vector<Bomb> &bombs, int off
         }
     }
 }
+
 
 char Map::getTile(int x, int y) const
 {
