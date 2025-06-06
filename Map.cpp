@@ -2,7 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include "Utils.h"
-#include "Colors.h" // Asegúrate de tener los defines de color aquí
+#include "Colors.h"
 
 Map::Map() {}
 
@@ -71,7 +71,7 @@ void Map::draw(int playerX, int playerY, const std::vector<Bomb> &bombs, int off
                         std::cout << GRAY << "]" << RESET;
                         break;
                     case 'B':
-                        std::cout << RED << "B" << RESET;
+                        std::cout << ORANGE << "B" << RESET;
                         break;
                     case 'A':
                         std::cout << GREEN << "#" << RESET;

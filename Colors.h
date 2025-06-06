@@ -1,6 +1,7 @@
 //Resetear al color por defecto
 #define RESET "\033[0m"
 #define GRAY "\033[90m"
+#define GRAY_BRIGHT "\033[38;5;250m"
 //Blanco fuerte
 #define WHITE_BRIGHT "\033[97m"
 #define RED "\033[31m"
