@@ -22,7 +22,7 @@ private:
 
     void processInput(char input);
     void loadLevel(int level);
-    void explode(int x, int y);  // <-- ¡Importante! Declarar aquí
+    void explode(int x, int y); 
 };
 
 #endif

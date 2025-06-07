@@ -11,33 +11,16 @@ Game::Game() : currentLevel(1), isRunning(true)
 {
 #ifdef _WIN32
     HWND console = GetConsoleWindow();
-
-    // Tamaño deseado de ventana (en píxeles)
-    const int consoleWidth = 400;
-    const int consoleHeight = 300;
-
-    // Obtener tamaño de pantalla
-    int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-    int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-
-    // Calcular posición para centrar
-    int posX = (screenWidth - consoleWidth) / 2;
-    int posY = (screenHeight - consoleHeight) / 2;
-
-    // Mover ventana y establecer tamaño
-    MoveWindow(console, posX, posY, consoleWidth, consoleHeight, TRUE);
-
-    // Ajustar tamaño del búfer de consola para que coincida con el tamaño de la ventana
+    RECT r;
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    GetWindowRect(console, &r);
+    MoveWindow(console, r.left, r.top, 1200, 720, TRUE);
+    // ⛔ Ocultar el cursor
+    CONSOLE_CURSOR_INFO cursorInfo;
+    GetConsoleCursorInfo(hOut, &cursorInfo);
+    cursorInfo.bVisible = FALSE;
+    SetConsoleCursorInfo(hOut, &cursorInfo);
 
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(hOut, &csbi);
-
-    // Establecer tamaño de búfer sin scroll (igual a tamaño de ventana en caracteres)
-    COORD bufferSize;
-    bufferSize.X = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-    bufferSize.Y = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-    SetConsoleScreenBufferSize(hOut, bufferSize);
 #endif
 
     loadLevel(currentLevel);
@@ -81,7 +64,8 @@ void Game::run()
             isRunning = false;
         }
 
-        Utils::sleep(100); // Control de FPS
+        // Control de FPS
+        Utils::sleep(60);
     }
 }
 
@@ -117,7 +101,7 @@ void Game::processInput(char input)
     int newY = player.getY() + dy;
     char tile = map.getTile(newX, newY);
 
-    if (tile != '#' && tile != '0' && tile != 'B' && tile != '~' && tile != 'H' && tile != 'A') // No es pared ni bomba
+    if (tile != '#' && tile != '0' && tile != '~' && tile != 'H' && tile != 'A') // No es pared ni bomba
     {
         if (tile == '/')
         {
@@ -144,6 +128,7 @@ void Game::loadLevel(int level)
     bombs.clear();
     player.setPosition(map.getSpawnX(), map.getSpawnY());
 }
+
 void Game::explode(int x, int y)
 {
     auto applyExplosion = [&](int dx, int dy)
@@ -157,18 +142,12 @@ void Game::explode(int x, int y)
             player.loseLife();
         }
 
-        // Solo explota si no es pared
-        if (tile != '#' && tile != '~' && tile != ']' && tile != '/')
+        if (tile != '#' && tile != '~' && tile != ']' && tile != '/' && tile != '0')
         {
             if (tile == '%')
-            {
-                // 25% de probabilidad de aparecer B
                 map.setTile(nx, ny, (rand() % 4 == 0) ? 'B' : '*');
-            }
             else
-            {
-                map.setTile(nx, ny, '*'); // mostrar explosión
-            }
+                map.setTile(nx, ny, '*');
         }
     };
 
@@ -178,19 +157,25 @@ void Game::explode(int x, int y)
     applyExplosion(-1, 0); // izquierda
     applyExplosion(1, 0);  // derecha
 
-    // Redibuja para que el mapa muestre la explosión
+#ifdef _WIN32
+    Beep(800, 50);
+    Beep(600, 50);
+    Beep(300, 100);
+
+#endif
+
+    // 🔧 NO limpiar pantalla aquí
+    // Usar mismos offsets que en el bucle principal
     Utils::clearScreen();
-    hud.draw(player, currentLevel);
-    map.draw(player.getX(), player.getY(), bombs, hud.getHeight());
+    hud.draw(player, currentLevel, map.getWidth());
+    map.draw(player.getX(), player.getY(), bombs, 1, 1);
 
-    Utils::sleep(200); // Mostrar explosión durante 200ms
+    Utils::sleep(200); // Mostrar '*'
 
-    // Limpia explosión (solo borra '*')
     for (int dx = -1; dx <= 1; ++dx)
     {
         for (int dy = -1; dy <= 1; ++dy)
         {
-            // Solo los puntos de cruz (centro y ejes)
             if ((dx == 0 || dy == 0) && !(dx != 0 && dy != 0))
             {
                 int nx = x + dx;

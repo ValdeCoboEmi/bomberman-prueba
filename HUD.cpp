@@ -1,62 +1,46 @@
-// HUD.cpp
 #include "HUD.h"
 #include "Utils.h"
-#include <iostream>
 #include "Colors.h"
+#include "Player.h"
+#include <iostream>
 
-int HUD::getHeight() const
-{
-    return 95; // ahora ocupa toda la altura de la ventana
+int HUD::getHeight() const {
+    return 95; // HUD ocupa toda la altura de la ventana
 }
 
-int HUD::getWidth() const
-{
-    return 25; // ancho fijo de 30 caracteres
+int HUD::getWidth() const {
+    return 25; // Ancho fijo del HUD
 }
 
-void HUD::draw(const Player &player, int currentLevel, int mapWidth)
-{
-    int hudX = mapWidth + 3; // coloca el HUD 5 espacios a la derecha del mapa
+// Función auxiliar para imprimir una línea de HUD
+void HUD::printLine(int x, int& y, const std::string& text, const std::string& color) {
+    std::cout << "\033[" << y << ";" << x << "H" << color << text << RESET << std::endl;
+    y++;
+}
+
+void HUD::draw(const Player& player, int currentLevel, int mapWidth) {
+    int hudX = mapWidth + 3; // HUD se dibuja justo a la derecha del mapa
     int y = 2;
 
-    Utils::moveCursor(hudX, y++);
-    std::cout << WHITE_BRIGHT << "Sala" << GRAY_BRIGHT << " - " << currentLevel;
+    // --- Sección: Información del jugador ---
+    printLine(hudX, y, "Sala - " + std::to_string(currentLevel), WHITE_BRIGHT);
+    y++; // Línea vacía
 
-    Utils::moveCursor(hudX, y++);
-    std::cout << "\n";
-    Utils::moveCursor(hudX, y++);
-    std::cout << "\n";
+    printLine(hudX, y, "Vida - " + std::to_string(player.getLives()), RED);
+    printLine(hudX, y, "B - " + std::to_string(player.getBombs()), ORANGE);
+    y++; // Línea vacía
 
-    Utils::moveCursor(hudX, y++);
-    std::cout << RED << "Vida" << GRAY_BRIGHT << " - " << player.getLives();
+    // --- Sección: Objetivo del juego ---
+    printLine(hudX, y, "[Objetivo]:", WHITE_BRIGHT);
+    printLine(hudX, y, "Encuentra la puerta");
+    printLine(hudX, y, "Destruye % con bombas");
+    printLine(hudX, y, "Evita morir con fuego");
+    y++; // Línea vacía
 
-    Utils::moveCursor(hudX, y++);
-    std::cout << ORANGE << "B" << GRAY_BRIGHT << " - " <<  player.getBombs();
+    // --- Sección: Controles ---
+    printLine(hudX, y, "Controles:", WHITE_BRIGHT);
+    printLine(hudX, y, "[WASD]: Moverse");
+    printLine(hudX, y, "[B]: Bomba");
 
-    Utils::moveCursor(hudX, y++);
-    std::cout << "\n";
-
-    Utils::moveCursor(hudX, y++);
-    std::cout << WHITE_BRIGHT << "[Objetivo]:" << GRAY_BRIGHT;
-
-    Utils::moveCursor(hudX, y++);
-    std::cout << "Encuentra la puerta";
-
-    Utils::moveCursor(hudX, y++);
-    std::cout << "Destruye % con bombas";
-
-    Utils::moveCursor(hudX, y++);
-    std::cout << "Evita morir con fuego";
-
-    Utils::moveCursor(hudX, y++);
-    std::cout << "\n";
-
-    Utils::moveCursor(hudX, y++);
-    std::cout << WHITE_BRIGHT << "Controles:" << GRAY_BRIGHT;
-
-    Utils::moveCursor(hudX, y++);
-    std::cout << "[WASD]: Moverse";
-
-    Utils::moveCursor(hudX, y++);
-    std::cout << "[B]: Bomba" << RESET;
+    std::cout << RESET; // Restablecer color
 }
