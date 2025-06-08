@@ -30,6 +30,28 @@ bool Map::loadFromFile(const std::string &filename)
     return true;
 }
 
+void Map::loadFromLines(const std::vector<std::string> &lines)
+{
+    data = lines;
+    height = lines.size();
+    width = lines.empty() ? 0 : lines[0].size();
+
+    // Buscar punto de inicio ']'
+    for (int y = 0; y < height; ++y)
+    {
+        for (int x = 0; x < width; ++x)
+        {
+            if (data[y][x] == ']')
+            {
+                spawnX = x;
+                spawnY = y;
+                data[y][x] = ' '; // Limpiar el spawn
+                return;
+            }
+        }
+    }
+}
+
 void Map::draw(int playerX, int playerY, const std::vector<Bomb> &bombs, int offsetX, int offsetY)
 {
     for (int y = 0; y < getHeight(); ++y)

@@ -1,7 +1,9 @@
 #include "Game.h"
 #include "Utils.h"
+#include <fstream>
 #include <iostream>
 #include <conio.h> // Para _kbhit() y _getch() en Windows
+#include <limits> // para std::numeric_limits
 
 #ifdef _WIN32
 #include <windows.h>
@@ -14,7 +16,7 @@ Game::Game() : currentLevel(1), isRunning(true)
     RECT r;
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     GetWindowRect(console, &r);
-    MoveWindow(console, r.left, r.top, 1200, 720, TRUE);
+    MoveWindow(console, r.left, r.top, 1000, 720, TRUE);
     // ⛔ Ocultar el cursor
     CONSOLE_CURSOR_INFO cursorInfo;
     GetConsoleCursorInfo(hOut, &cursorInfo);
@@ -65,7 +67,7 @@ void Game::run()
         }
 
         // Control de FPS
-        Utils::sleep(60);
+        Utils::sleep(30);
     }
 }
 
@@ -119,12 +121,41 @@ void Game::processInput(char input)
         player.move(dx, dy, tile);
     }
 }
-
 void Game::loadLevel(int level)
 {
-    std::string filename = "maps-bomberman/easy.txt";
-    map.loadFromFile(filename);
+    // Construir el nombre del archivo según el nivel actual
+    std::string filename = "maps-bomberman/easy-levels/level" + std::to_string(level) + ".txt";
+    std::ifstream file(filename);
 
+    if (!file)
+    {
+        Utils::clearScreen();
+        std::cout << "\n🎉 ¡Felicidades! Has completado todas las salas.\n";
+        std::cout << "\nPresiona Enter para salir...";
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        // Espera que el jugador presione Enter
+        std::cin.get(); 
+        isRunning = false;
+        return;
+    }
+
+    std::vector<std::string> lines;
+    std::string line;
+
+    while (std::getline(file, line))
+    {
+        lines.push_back(line);
+    }
+
+    if (lines.empty())
+    {
+        std::cerr << "El archivo de nivel está vacío: " << filename << "\n";
+        isRunning = false;
+        return;
+    }
+
+    // Cargar el mapa y reiniciar estado del juego
+    map.loadFromFile(filename);
     bombs.clear();
     player.setPosition(map.getSpawnX(), map.getSpawnY());
 }

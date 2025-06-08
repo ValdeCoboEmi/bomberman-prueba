@@ -13,6 +13,7 @@ public:
     void draw(int playerX, int playerY, const std::vector<Bomb> &bombs, int offsetX = 0, int offsetY = 0);
     char getTile(int x, int y) const;
     void setTile(int x, int y, char value);
+    void loadFromLines(const std::vector<std::string>& lines);
     int getWidth() const;
     int getHeight() const;
     int getSpawnX() const { return spawnX; }
@@ -20,8 +21,11 @@ public:
 
 private:
     std::vector<std::string> grid;
+    std::vector<std::string> data;
     int spawnX = 1;
     int spawnY = 1;
+    int width = 0;   
+    int height = 0;  
 };
 
 #endif

@@ -4,21 +4,25 @@
 #include "Player.h"
 #include <iostream>
 
-int HUD::getHeight() const {
+int HUD::getHeight() const
+{
     return 95; // HUD ocupa toda la altura de la ventana
 }
 
-int HUD::getWidth() const {
+int HUD::getWidth() const
+{
     return 25; // Ancho fijo del HUD
 }
 
 // Función auxiliar para imprimir una línea de HUD
-void HUD::printLine(int x, int& y, const std::string& text, const std::string& color) {
+void HUD::printLine(int x, int &y, const std::string &text, const std::string &color)
+{
     std::cout << "\033[" << y << ";" << x << "H" << color << text << RESET << std::endl;
     y++;
 }
 
-void HUD::draw(const Player& player, int currentLevel, int mapWidth) {
+void HUD::draw(const Player &player, int currentLevel, int mapWidth)
+{
     int hudX = mapWidth + 3; // HUD se dibuja justo a la derecha del mapa
     int y = 2;
 
@@ -27,6 +31,8 @@ void HUD::draw(const Player& player, int currentLevel, int mapWidth) {
     y++; // Línea vacía
 
     printLine(hudX, y, "Vida - " + std::to_string(player.getLives()), RED);
+    // Borrar la línea actual antes de escribir las bombas
+    std::cout << "\033[" << y << ";" << hudX << "H" << std::string(25, ' '); // Borra la línea completa (25 espacios)
     printLine(hudX, y, "B - " + std::to_string(player.getBombs()), ORANGE);
     y++; // Línea vacía
 
