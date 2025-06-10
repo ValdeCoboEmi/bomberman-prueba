@@ -5,16 +5,24 @@
 
 class Bomb {
 public:
-    Bomb(int x, int y);
+    Bomb(int x, int y)
+        : x(x), y(y), placedAt(std::chrono::steady_clock::now()) {}
 
-    int getX() const;
-    int getY() const;
-    bool hasExploded() const;
-    void update();
+    int getX() const { return x; }
+    int getY() const { return y; }
+
+    bool hasExploded() const {
+        return std::chrono::duration_cast<std::chrono::seconds>(
+                    std::chrono::steady_clock::now() - placedAt)
+                    .count() >= 3;
+    }
+
+    void update() {
+    }
 
 private:
     int x, y;
     std::chrono::steady_clock::time_point placedAt;
 };
 
-#endif
+#endif // BOMB_H
