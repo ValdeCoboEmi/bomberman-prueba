@@ -39,8 +39,10 @@ void HUD::draw(const Player &player, int currentLevel, int mapWidth)
     // --- Información del jugador ---
     printLine(hudX, y, "Sala - " + std::to_string(currentLevel), WHITE_BRIGHT);
     y++;
-
+    
     printLine(hudX, y, "Vida - " + std::to_string(player.getLives()), RED);
+    // Borra la línea completa (25 espacios)
+    std::cout << "\033[" << y << ";" << hudX << "H" << std::string(25, ' '); 
     printLine(hudX, y, "B - " + std::to_string(player.getBombs()), ORANGE);
     y++;
 
