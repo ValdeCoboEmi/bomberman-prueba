@@ -10,7 +10,6 @@
 class HUD
 {
 public:
-    int getHeight() const;
     int getWidth() const;
     void draw(const Player &player, int currentLevel, int mapWidth = 0);
 
@@ -20,20 +19,15 @@ private:
 
 // Implementación
 
-int HUD::getHeight() const
-{
-    return 95; // HUD ocupa toda la altura de la ventana
-}
-
 int HUD::getWidth() const
 {
     return 25; // Ancho fijo del HUD
 }
 
-// Función auxiliar para imprimir una línea de HUD
+// Imprime una línea de texto con color en posición específica
 void HUD::printLine(int x, int &y, const std::string &text, const std::string &color)
 {
-    std::cout << "\033[" << y << ";" << x << "H" << color << text << RESET << std::endl;
+    std::cout << "\033[" << y << ";" << x << "H" << color << text << RESET;
     y++;
 }
 
@@ -42,24 +36,22 @@ void HUD::draw(const Player &player, int currentLevel, int mapWidth)
     int hudX = mapWidth + 3; // HUD se dibuja justo a la derecha del mapa
     int y = 2;
 
-    // --- Sección: Información del jugador ---
+    // --- Información del jugador ---
     printLine(hudX, y, "Sala - " + std::to_string(currentLevel), WHITE_BRIGHT);
-    y++; // Línea vacía
+    y++;
 
     printLine(hudX, y, "Vida - " + std::to_string(player.getLives()), RED);
-    // Borrar la línea actual antes de escribir las bombas
-    std::cout << "\033[" << y << ";" << hudX << "H" << std::string(25, ' '); // Borra la línea completa (25 espacios)
     printLine(hudX, y, "B - " + std::to_string(player.getBombs()), ORANGE);
-    y++; // Línea vacía
+    y++;
 
-    // --- Sección: Objetivo del juego ---
+    // --- Objetivo del juego ---
     printLine(hudX, y, "[Objetivo]:", WHITE_BRIGHT);
     printLine(hudX, y, "Encuentra la puerta");
     printLine(hudX, y, "Destruye % con bombas");
     printLine(hudX, y, "Evita morir con fuego");
-    y++; // Línea vacía
+    y++;
 
-    // --- Sección: Controles ---
+    // --- Controles ---
     printLine(hudX, y, "Controles:", WHITE_BRIGHT);
     printLine(hudX, y, "[WASD]: Moverse");
     printLine(hudX, y, "[B]: Bomba");
