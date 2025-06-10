@@ -34,7 +34,7 @@ void HUD::printLine(int x, int &y, const std::string &text, const std::string &c
 void HUD::draw(const Player &player, int currentLevel, int mapWidth)
 {
     int hudX = mapWidth + 3; // HUD se dibuja justo a la derecha del mapa
-    int y = 2;
+    int y = 3;
 
     // --- Información del jugador ---
     printLine(hudX, y, "Sala - " + std::to_string(currentLevel), WHITE_BRIGHT);

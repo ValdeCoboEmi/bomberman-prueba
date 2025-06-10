@@ -1,7 +1,6 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include <vector>
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -9,140 +8,87 @@
 #include "Utils.h"
 #include "Colors.h"
 
-class Map
-{
+const int MAX_HEIGHT = 95;
+const int MAX_WIDTH = 60;
+const int MAX_BOMBS = 25; 
+
+class Map {
 public:
     Map();
     bool loadFromFile(const std::string &filename);
-    void draw(int playerX, int playerY, const std::vector<Bomb> &bombs, int offsetX = 0, int offsetY = 0);
+    void draw(int playerX, int playerY, Bomb bombs[], int bombCount, int offsetX = 0, int offsetY = 0);
     char getTile(int x, int y) const;
     void setTile(int x, int y, char value);
-    void loadFromLines(const std::vector<std::string>& lines);
     int getWidth() const;
     int getHeight() const;
     int getSpawnX() const { return spawnX; }
     int getSpawnY() const { return spawnY; }
 
 private:
-    std::vector<std::string> grid;
-    std::vector<std::string> data;
-    int spawnX = 1;
-    int spawnY = 1;
+    char grid[MAX_HEIGHT][MAX_WIDTH]{};
     int width = 0;
     int height = 0;
+    int spawnX = 1;
+    int spawnY = 1;
 };
-
-// Implementación
 
 Map::Map() {}
 
-bool Map::loadFromFile(const std::string &filename)
-{
-    grid.clear();
+bool Map::loadFromFile(const std::string &filename) {
     std::ifstream file(filename);
-    if (!file.is_open())
-        return false;
+    if (!file.is_open()) return false;
 
     std::string line;
     int y = 0;
-    while (std::getline(file, line))
-    {
-        grid.push_back(line);
-        // Buscar la puerta
-        size_t pos = line.find(']');
-        if (pos != std::string::npos)
-        {
-            spawnX = pos + 1; // El personaje aparece a la derecha de la puerta
-            spawnY = y;
+    while (std::getline(file, line) && y < MAX_HEIGHT) {
+        int lineLength = std::min((int)line.size(), MAX_WIDTH);
+        for (int x = 0; x < lineLength; ++x) {
+            grid[y][x] = line[x];
+            if (line[x] == ']') {
+                spawnX = x + 1;
+                spawnY = y;
+            }
+        }
+        for (int x = lineLength; x < MAX_WIDTH; ++x) {
+            grid[y][x] = ' ';
         }
         ++y;
     }
+
+    height = y;
+    width = MAX_WIDTH;
     return true;
 }
 
-void Map::loadFromLines(const std::vector<std::string> &lines)
-{
-    data = lines;
-    height = lines.size();
-    width = lines.empty() ? 0 : lines[0].size();
-
-    // Buscar punto de inicio ']'
-    for (int y = 0; y < height; ++y)
-    {
-        for (int x = 0; x < width; ++x)
-        {
-            if (data[y][x] == ']')
-            {
-                spawnX = x;
-                spawnY = y;
-                data[y][x] = ' '; // Limpiar el spawn
-                return;
-            }
-        }
-    }
-}
-
-void Map::draw(int playerX, int playerY, const std::vector<Bomb> &bombs, int offsetX, int offsetY)
-{
-    for (int y = 0; y < getHeight(); ++y)
-    {
-        for (int x = 0; x < getWidth(); ++x)
-        {
-            Utils::moveCursor(offsetX + x, y + offsetY);
-
-            if (x == playerX && y == playerY)
-            {
+void Map::draw(int playerX, int playerY, Bomb bombs[], int bombCount, int offsetX, int offsetY) {
+    for (int y = 0; y < getHeight(); ++y) {
+        for (int x = 0; x < getWidth(); ++x) {
+            Utils::moveCursor(offsetX + x, offsetY + y);
+            if (x == playerX && y == playerY) {
                 std::cout << PINK << "o" << RESET;
-            }
-            else
-            {
+            } else {
                 bool isBomb = false;
-
-                for (const auto &bomb : bombs)
-                {
-                    if (bomb.getX() == x && bomb.getY() == y)
-                    {
+                for (int i = 0; i < bombCount; ++i) {
+                    if (bombs[i].getX() == x && bombs[i].getY() == y) {
                         isBomb = true;
                         break;
                     }
                 }
 
-                if (isBomb)
-                {
+                if (isBomb) {
                     std::cout << ORANGE << "0" << RESET;
-                }
-                else
-                {
+                } else {
                     char tile = grid[y][x];
-                    switch (tile)
-                    {
-                    case '#':
-                        std::cout << GRAY << "#" << RESET;
-                        break;
-                    case ']':
-                        std::cout << GRAY << "]" << RESET;
-                        break;
-                    case 'B':
-                        std::cout << ORANGE << "B" << RESET;
-                        break;
-                    case 'A':
-                        std::cout << GREEN << "#" << RESET;
-                        break; // árbol
-                    case 'H':
-                        std::cout << GREEN << "O" << RESET;
-                        break; // árbol
-                    case 'T':
-                        std::cout << BROWN << "W" << RESET;
-                        break; // tronco y hojas como árbol
-                    case '~':
-                        std::cout << BLUE << "~" << RESET;
-                        break; // lago
-                    case '*':
-                        std::cout << YELLOW_BRIGHT << "*" << RESET;
-                        break; // explosión
-                    default:
-                        std::cout << tile;
-                        break;
+                    switch (tile) {
+                        case '#': std::cout << GRAY << "#" << RESET; break;
+                        case ']': std::cout << GRAY << "]" << RESET; break;
+                        case 'B': std::cout << ORANGE << "B" << RESET; break;
+                        case 'A': std::cout << GREEN << "#" << RESET; break;
+                        case 'H': std::cout << GREEN << "O" << RESET; break;
+                        case 'T': std::cout << BROWN << "W" << RESET; break;
+                        case '~': std::cout << BLUE << "~" << RESET; break;
+                        case '*': std::cout << YELLOW_BRIGHT << "*" << RESET; break;
+                        default: std::cout << tile; break;
                     }
                 }
             }
@@ -150,31 +96,20 @@ void Map::draw(int playerX, int playerY, const std::vector<Bomb> &bombs, int off
     }
 }
 
-char Map::getTile(int x, int y) const
-{
-    if (y >= 0 && y < grid.size() && x >= 0 && x < grid[y].size())
-    {
+char Map::getTile(int x, int y) const {
+    if (x >= 0 && x < width && y >= 0 && y < height) {
         return grid[y][x];
     }
     return ' ';
 }
 
-void Map::setTile(int x, int y, char value)
-{
-    if (y >= 0 && y < grid.size() && x >= 0 && x < grid[y].size())
-    {
+void Map::setTile(int x, int y, char value) {
+    if (x >= 0 && x < width && y >= 0 && y < height) {
         grid[y][x] = value;
     }
 }
 
-int Map::getWidth() const {
-    if (grid.empty()) return 0;
-    return grid[0].size();
-}
-
-int Map::getHeight() const
-{
-    return grid.size();
-}
+int Map::getWidth() const { return width; }
+int Map::getHeight() const { return height; }
 
 #endif // MAP_H
