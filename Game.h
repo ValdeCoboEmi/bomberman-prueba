@@ -5,7 +5,7 @@
 #include "Map.h"
 #include "BombRenderer.h"
 #include "Player.h"
-#include "HUD.h"
+#include "HUDBomberman.h"
 #include "Bomb.h"
 
 #include <fstream>
@@ -28,7 +28,7 @@ public:
 private:
     Map map;
     Player player;
-    HUD hud;
+    HUDBomberman hud;
     Bomb bombs[MAX_BOMBS];
     int bombCount = 0;
 
@@ -67,7 +67,7 @@ void Game::run()
         Utils::clearScreen();
         map.draw(player.GetX(), player.GetY(), offsetX, offsetY);
         BombRenderer::draw(bombs, bombCount, 1, 1);
-        hud.draw(player, currentLevel, map.getWidth());
+        hud.Draw(player, currentLevel, map.getWidth());
 
         for (int i = 0; i < bombCount;)
         {
@@ -175,7 +175,7 @@ void Game::handleExplosion(int i)
 #endif
 
     Utils::clearScreen();
-    hud.draw(player, currentLevel, map.getWidth());
+    hud.Draw(player, currentLevel, map.getWidth());
     map.draw(player.GetX(), player.GetY(), offsetX, offsetY);
     BombRenderer::draw(bombs, bombCount, 1, 1);
     Utils::sleep(30);
