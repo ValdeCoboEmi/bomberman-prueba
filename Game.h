@@ -1,45 +1,49 @@
 #ifndef GAME_H
 #define GAME_H
 
-// Archivos propios del juego
-#include "Map.h"
-#include "Player.h"
-#include "Bomb.h"
-#include "HUD.h"
 #include "Utils.h"
+#include "Map.h"
+#include "BombRenderer.h"
+#include "Player.h"
+#include "HUD.h"
+#include "Bomb.h"
 
 #include <fstream>
 #include <iostream>
-#include <conio.h>   // Para _kbhit() y _getch() en Windows
-#include <limits>    // Para std::numeric_limits
+#include <conio.h>
+#include <limits>
 
 #ifdef _WIN32
-#include <windows.h> // Para manipular la ventana de la consola en Windows
+#include <windows.h>
 #endif
 
-class Game {
+const int MAX_BOMBS = 25;
+
+class Game
+{
 public:
-    Game();      // Constructor: inicializa el juego
-    void run();  // Bucle principal del juego
+    Game();
+    void run();
 
 private:
     Map map;
     Player player;
     HUD hud;
-    Bomb bombs[MAX_BOMBS];  // Arreglo estático de bombas
+    Bomb bombs[MAX_BOMBS];
     int bombCount = 0;
 
     int currentLevel;
     bool isRunning;
+    int offsetX = 1; 
+    int offsetY = 1;
 
     void processInput(char input);
     void loadLevel(int level);
-    void explode(int x, int y);
+    void handleExplosion(int i);
 };
 
-// IMPLEMENTACIÓN
-
-Game::Game() : currentLevel(1), isRunning(true), bombCount(0) {
+Game::Game() : currentLevel(1), isRunning(true), bombCount(0)
+{
 #ifdef _WIN32
     HWND console = GetConsoleWindow();
     RECT r;
@@ -55,37 +59,36 @@ Game::Game() : currentLevel(1), isRunning(true), bombCount(0) {
     loadLevel(currentLevel);
 }
 
-void Game::run() {
-    while (isRunning) {
+void Game::run()
+{
+    player.ActivateControlB(true);
+    while (isRunning)
+    {
         Utils::clearScreen();
-
-        map.draw(player.getX(), player.getY(), bombs, bombCount, 1, 1);
+        map.draw(player.GetX(), player.GetY(), offsetX, offsetY);
+        BombRenderer::draw(bombs, bombCount, 1, 1);
         hud.draw(player, currentLevel, map.getWidth());
 
-        // Actualizar bombas
-        for (int i = 0; i < bombCount; ++i)
-            bombs[i].update();
-
-        // Manejar explosiones
-        for (int i = 0; i < bombCount;) {
-            if (bombs[i].hasExploded()) {
-                explode(bombs[i].getX(), bombs[i].getY());
-
-                // Eliminar bomba del arreglo
+        for (int i = 0; i < bombCount;)
+        {
+            if (bombs[i].HasExploded())
+            {
+                handleExplosion(i);
                 for (int j = i; j < bombCount - 1; ++j)
                     bombs[j] = bombs[j + 1];
                 --bombCount;
-            } else {
+            }
+            else
+            {
                 ++i;
             }
         }
 
-        if (_kbhit()) {
-            char input = _getch();
-            processInput(input);
-        }
+        if (_kbhit())
+            processInput(_getch());
 
-        if (player.getLives() <= 0) {
+        if (player.GetLives() <= 0)
+        {
             Utils::clearScreen();
             std::cout << "\nHas perdido todas tus vidas. ¡Game Over!\n";
             isRunning = false;
@@ -95,48 +98,34 @@ void Game::run() {
     }
 }
 
-void Game::processInput(char input) {
-    int dx = 0, dy = 0;
-
-    switch (input) {
-        case 'w': dy = -1; break;
-        case 's': dy = 1; break;
-        case 'a': dx = -1; break;
-        case 'd': dx = 1; break;
-        case 'b':
-            if (player.canPlaceBomb() && bombCount < MAX_BOMBS) {
-                bombs[bombCount++] = Bomb(player.getX(), player.getY());
-                map.setTile(player.getX(), player.getY(), '0');
-                player.placeBomb();
-            }
-            return;
+void Game::processInput(char input)
+{
+    if (input == 'b' && player.IsControlBActive())
+    {
+        if (player.CanPlaceBomb() && (bombCount < MAX_BOMBS))
+        {
+            bombs[bombCount++] = Bomb(player.GetX(), player.GetY());
+            map.setTile(player.GetX(), player.GetY(), '0');
+            player.PlaceBomb();
+        }
+        return;
     }
 
-    int newX = player.getX() + dx;
-    int newY = player.getY() + dy;
-    char tile = map.getTile(newX, newY);
-
-    if (tile != '#' && tile != '0' && tile != '~' && tile != 'H' && tile != 'A') {
-        if (tile == '/') {
-            currentLevel++;
-            loadLevel(currentLevel);
-            return;
-        }
-        if (tile == 'B') {
-            player.addMaxBomb();
-            map.setTile(newX, newY, ' ');
-        }
-
-        map.setTile(player.getX(), player.getY(), ' ');
-        player.move(dx, dy, tile);
+    bool changeLevel = player.TryMove(input, map);
+    if (changeLevel)
+    {
+        currentLevel++;
+        loadLevel(currentLevel);
     }
 }
 
-void Game::loadLevel(int level) {
+void Game::loadLevel(int level)
+{
     std::string filename = "maps-bomberman/easy-levels/level" + std::to_string(level) + ".txt";
     std::ifstream file(filename);
 
-    if (!file) {
+    if (!file)
+    {
         Utils::clearScreen();
         std::cout << "\n🎉 ¡Felicidades! Has completado todas las salas.\n";
         std::cout << "\nPresiona Enter para salir...";
@@ -148,20 +137,24 @@ void Game::loadLevel(int level) {
 
     map.loadFromFile(filename);
     bombCount = 0;
-    player.setPosition(map.getSpawnX(), map.getSpawnY());
+    player.SetPosition(map.getSpawnX(), map.getSpawnY());
 }
 
-void Game::explode(int x, int y) {
-    auto applyExplosion = [&](int dx, int dy) {
-        int nx = x + dx;
-        int ny = y + dy;
+void Game::handleExplosion(int i)
+{
+    int x = bombs[i].GetX();
+    int y = bombs[i].GetY();
+
+    auto applyExplosion = [&](int dx, int dy)
+    {
+        int nx = x + dx, ny = y + dy;
         char tile = map.getTile(nx, ny);
 
-        if (nx == player.getX() && ny == player.getY()) {
-            player.loseLife();
-        }
+        if (nx == player.GetX() && ny == player.GetY())
+            player.LoseLife();
 
-        if (tile != '#' && tile != '~' && tile != ']' && tile != '/' && tile != '0') {
+        if (tile != '#' && tile != '~' && tile != ']' && tile != '/' && tile != '0')
+        {
             if (tile == '%')
                 map.setTile(nx, ny, (rand() % 4 == 0) ? 'B' : '*');
             else
@@ -183,16 +176,19 @@ void Game::explode(int x, int y) {
 
     Utils::clearScreen();
     hud.draw(player, currentLevel, map.getWidth());
-    map.draw(player.getX(), player.getY(), bombs, bombCount, 1, 1);
-    Utils::sleep(200);
+    map.draw(player.GetX(), player.GetY(), offsetX, offsetY);
+    BombRenderer::draw(bombs, bombCount, 1, 1);
+    Utils::sleep(30);
 
-    for (int dx = -1; dx <= 1; ++dx) {
-        for (int dy = -1; dy <= 1; ++dy) {
-            if ((dx == 0 || dy == 0) && !(dx != 0 && dy != 0)) {
-                int nx = x + dx;
-                int ny = y + dy;
+    for (int dx = -1; dx <= 1; ++dx)
+    {
+        for (int dy = -1; dy <= 1; ++dy)
+        {
+            if ((dx == 0 || dy == 0) && !(dx != 0 && dy != 0))
+            {
+                int nx = x + dx, ny = y + dy;
                 char tile = map.getTile(nx, ny);
-                if (tile == '*')
+                if (tile == '*' || tile == '0')
                     map.setTile(nx, ny, ' ');
             }
         }

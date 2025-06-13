@@ -1,39 +1,35 @@
 #ifndef BOMB_H
 #define BOMB_H
 
-#include <chrono> // Biblioteca para manejar el tiempo (reloj, duración, etc.)
+#include <chrono>
 
-// Clase que representa una bomba en el juego
 class Bomb
 {
 public:
-    // Constructor por defecto necesario para arreglos estáticos o sin inicialización directa
-    Bomb() : x(0), y(0), placedAt(std::chrono::steady_clock::now()) {}
+    Bomb();
+    Bomb(int x, int y);
 
-    // Constructor personalizado: inicializa la bomba con su posición (x, y) y guarda el tiempo en que fue colocada
-    Bomb(int x, int y)
-        : x(x), y(y), placedAt(std::chrono::steady_clock::now()) {}
-
-    // Devuelve la posición X de la bomba
-    int getX() const { return x; }
-
-    // Devuelve la posición Y de la bomba
-    int getY() const { return y; }
-
-    // Verifica si la bomba ha explotado (han pasado 3 segundos desde que fue colocada)
-    bool hasExploded() const
-    {
-        return std::chrono::duration_cast<std::chrono::seconds>(
-                    std::chrono::steady_clock::now() - placedAt)
-                    .count() >= 3;
-    }
-
-    // Método de actualización (actualmente no hace nada, pero se puede usar en el futuro)
-    void update() {}
+    int GetX() const;
+    int GetY() const;
+    bool HasExploded() const;
 
 private:
-    int x, y;                                       // Posición de la bomba
-    std::chrono::steady_clock::time_point placedAt; // Momento en que se colocó la bomba
+    int x, y;
+    std::chrono::steady_clock::time_point placedAt;
 };
 
-#endif // BOMB_H
+// Implementación de Bomb
+// Constructor por defecto y con coordenadas
+Bomb::Bomb() : x(0), y(0), placedAt(std::chrono::steady_clock::now()) {}
+Bomb::Bomb(int x, int y) : x(x), y(y), placedAt(std::chrono::steady_clock::now()) {}
+
+// Getters para las coordenadas
+int Bomb::GetX() const { return x; }
+int Bomb::GetY() const { return y; }
+
+// Verifica si la bomba ha explotado (3 segundos después de ser colocada)
+bool Bomb::HasExploded() const {
+    return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - placedAt).count() >= 3;
+}
+
+#endif 

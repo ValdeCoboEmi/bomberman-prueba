@@ -1,3 +1,8 @@
+// HUD es un acrónimo de "Heads-Up Display", 
+//que se refiere a una interfaz gráfica que 
+//muestra información importante al jugador sin interrumpir 
+//la experiencia de juego. En este caso, el 
+//HUD muestra información sobre el jugador, como su vida, objetos dependiendo del nivel y objetivos del juego.
 #ifndef HUD_H
 #define HUD_H
 
@@ -40,10 +45,10 @@ void HUD::draw(const Player &player, int currentLevel, int mapWidth)
     printLine(hudX, y, "Sala - " + std::to_string(currentLevel), WHITE_BRIGHT);
     y++;
     
-    printLine(hudX, y, "Vida - " + std::to_string(player.getLives()), RED);
+    printLine(hudX, y, "Vida - " + std::to_string(player.GetLives()), RED);
     // Borra la línea completa (25 espacios)
     std::cout << "\033[" << y << ";" << hudX << "H" << std::string(25, ' '); 
-    printLine(hudX, y, "B - " + std::to_string(player.getBombs()), ORANGE);
+    printLine(hudX, y, "B - " + std::to_string(player.GetBombs()), ORANGE);
     y++;
 
     // --- Objetivo del juego ---

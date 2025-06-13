@@ -1,87 +1,211 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#pragma once
+#include <string>
+
+class Map;
+
 // Clase que representa al jugador en el juego
-class Player {
+class Player
+{
 public:
+    // Dificultad del juego
+    enum Difficulty
+    {
+        EASY,
+        NORMAL,
+        HARD
+    };
+
     Player();
 
-    // Getters para obtener información del jugador
-    int getX() const;              // Posición X del jugador en el mapa
-    int getY() const;              // Posición Y del jugador en el mapa
-    int getLives() const;          // Número de vidas actuales
-    int getBombs() const;          // Bombas disponibles actualmente
-    int getMaxBombs() const;       // Cantidad máxima de bombas que puede tener
-    bool canPlaceBomb() const;     // Retorna true si tiene bombas disponibles para colocar
+    // Getters
+    int GetX() const;
+    int GetY() const;
+    int GetLives() const;
+    int GetBombs() const;
+    int GetMaxBombs() const;
+    bool CanPlaceBomb() const;
+    Difficulty GetDifficulty() const;
+    // Obtiene si el control de la tecla B está activo
+    bool IsControlBActive() const;
+
+    // Setters
+    // Establece la posición del jugador
+    void SetPosition(int x, int y);
+    // Establece la dificultad del juego
+    void SetDifficulty(Difficulty dif);
+    // SE pone si esta activa o desactiva el control de la tecla B
+    void ActivateControlB(bool state);
+    void SetLives(int lives);
+    void SetBombs(int bombs);
 
     // Acciones del jugador
-    void move(int dx, int dy, char nextTile); // Mueve al jugador si la siguiente casilla es válida
-    void placeBomb();                         // Coloca una bomba (reduce las bombas disponibles)
-    void loseLife();                          // Resta una vida
-    void restoreBomb();                       // Restaura una bomba (al explotar una bomba)
-    void addMaxBomb();                        // Aumenta la cantidad máxima y actual de bombas (al recoger una 'B')
-    void setPosition(int x, int y);           // Establece la posición del jugador (usado en reinicios o teletransportación)
+    // Intenta mover al jugador en base a un input y el mapa
+    bool TryMove(char input, class Map map);
+    // Movimiento básico si la casilla es caminable
+    void Move(int dx, int dy, char nextTile);
+    // Coloca una bomba si hay bombas disponibles
+    void PlaceBomb();
+    void LoseLife();
+    void IncrementBombs();
+    void IncrementLife();
 
 private:
-    // Atributos del jugador
-    int x, y;               // Posición del jugador en el mapa
-    int lives;              // Vidas actuales
-    int bombsAvailable;     // Cuántas bombas puede colocar en este momento
-    int maxBombs;           // Límite máximo de bombas que puede tener
+    int x, y;
+    int lives;
+    int bombsAvailable;
+    int maxBombs;
+    Difficulty difficulty;
+    bool controlB;
 };
 
-// Implementación
+#include "Map.h"
 
-// Constructor por defecto: posición inicial (1,1), 3 vidas, 5 bombas iniciales, máximo 25
-Player::Player() : x(1), y(1), lives(3), bombsAvailable(5), maxBombs(25) {}
+// Constructor por defecto del jugador
+Player::Player()
+    : x(1), y(1), lives(3), bombsAvailable(5), maxBombs(25), difficulty(EASY), controlB(true) {}
 
-int Player::getX() const { return x; }
-int Player::getY() const { return y; }
-int Player::getLives() const { return lives; }
-int Player::getBombs() const { return bombsAvailable; }
-int Player::getMaxBombs() const { return maxBombs; }
+int Player::GetX() const { return x; }
+int Player::GetY() const { return y; }
+int Player::GetLives() const { return lives; }
+int Player::GetBombs() const { return bombsAvailable; }
+int Player::GetMaxBombs() const { return maxBombs; }
+Player::Difficulty Player::GetDifficulty() const { return difficulty; }
+bool Player::IsControlBActive() const { return controlB; }
 
-// Mueve al jugador si la siguiente casilla es caminable (espacio vacío o puerta '/')
-void Player::move(int dx, int dy, char nextTile) {
-    if (nextTile == ' ' || nextTile == '/') {
+//! Setters
+// Establece la posición del jugador
+void Player::SetPosition(int newX, int newY)
+{
+    x = newX;
+    y = newY;
+}
+
+// Establece la dificultad del juego
+void Player::SetDifficulty(Difficulty dif)
+{
+    difficulty = dif;
+}
+
+// Establece el número de vidas del jugador
+void Player::SetLives(int newLives)
+{
+    lives = newLives;
+}
+
+// Establece el número de bombas disponibles
+void Player::SetBombs(int newBombs)
+{
+    bombsAvailable = newBombs;
+    if (bombsAvailable > maxBombs)
+        bombsAvailable = maxBombs;
+}
+
+//! Activa o desactiva el control de la tecla B
+void Player::ActivateControlB(bool state)
+{
+    controlB = state;
+}
+
+//! Acciones del jugador
+// Verifica si el jugador puede colocar una bomba
+bool Player::CanPlaceBomb() const
+{
+    return bombsAvailable > 0;
+}
+
+// Coloca una bomba si hay bombas disponibles
+// Si hay bombas disponibles, decrementa el contador de bombas
+void Player::PlaceBomb()
+{
+    if (bombsAvailable > 0)
+        --bombsAvailable;
+}
+
+// Incrementa el número de bombas disponibles si no se ha alcanzado el máximo
+void Player::IncrementBombs()
+{
+    if (bombsAvailable < maxBombs)
+        ++bombsAvailable;
+}
+
+// Incrementa la cantidad de vidas del jugador
+void Player::IncrementLife()
+{
+    ++lives;
+}
+
+// Decrementa la cantidad de vidas del jugador
+void Player::LoseLife()
+{
+    --lives;
+}
+
+// Movimiento del jugador
+// Mueve al jugador en la dirección especificada si la casilla es caminable
+void Player::Move(int dx, int dy, char nextTile)
+{
+    if (nextTile == ' ' || nextTile == '/' || nextTile == 'B')
+    {
         x += dx;
         y += dy;
     }
 }
 
-// Retorna si el jugador puede colocar una bomba
-bool Player::canPlaceBomb() const {
-    return bombsAvailable > 0;
-}
+// Intenta mover al jugador en base a un input y el mapa
+bool Player::TryMove(char input, Map map)
+{
+    // Define las direcciones de movimiento
+    int dx = 0, dy = 0;
 
-// Coloca una bomba si tiene disponibles
-void Player::placeBomb() {
-    if (bombsAvailable > 0) {
-        --bombsAvailable;
+    // Determina la dirección del movimiento según el input
+    switch (input)
+    {
+    case 'w':
+        // Mueve hacia arriba
+        dy = -1;
+        break;
+    case 's':
+        // Mueve hacia abajo
+        dy = 1;
+        break;
+    case 'a':
+        // Mueve hacia la izquierda
+        dx = -1;
+        break;
+    case 'd':
+        // Mueve hacia la derecha
+        dx = 1;
+        break;
+    default:
+        // Si el input no es válido, no se mueve
+        return false;
     }
+
+    // Calcula las nuevas coordenadas del jugador
+    int newX = x + dx;
+    int newY = y + dy;
+    // Verifica si las nuevas coordenadas están dentro de los límites del mapa
+    char tile = map.getTile(newX, newY);
+
+    // Si la casilla no es caminable, no se mueve
+    if (tile == '#' || tile == '0' || tile == '~' || tile == 'H' || tile == 'A')
+        return false;
+
+    // Si la casilla es una bomba, incrementa el contador de bombas y la elimina del mapa
+    if (tile == 'B')
+    {
+        IncrementBombs();
+        map.setTile(newX, newY, ' ');
+    }
+
+    // Mueve al jugador a la nueva posición
+    Move(dx, dy, tile);
+
+    // Si pisa puerta '/', retorna true para indicar cambio de nivel
+    return tile == '/';
 }
 
-// Restaura una bomba cuando una bomba que colocó explota
-void Player::restoreBomb() {
-    if (bombsAvailable < maxBombs)
-        ++bombsAvailable;
-}
-
-// Aumenta la cantidad máxima de bombas y también la cantidad disponible
-void Player::addMaxBomb() {
-    ++maxBombs;
-    ++bombsAvailable;
-}
-
-// Resta una vida al jugador
-void Player::loseLife() {
-    --lives;
-}
-
-// Establece manualmente la posición del jugador
-void Player::setPosition(int newX, int newY) {
-    x = newX;
-    y = newY;
-}
-
-#endif // PLAYER_H
+#endif
